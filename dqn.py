@@ -55,6 +55,15 @@ class DQN(nn.Module):
         x = self.fc2(x)
 
         return x
+    
+    def get_epsilon(self, step):
+        """Returns an epsilon for the epsilon-greedy exploration."""
+        if step < self.anneal_length:
+            epsilon = self.eps_start - (self.eps_start - self.eps_end) * (step / self.anneal_length)
+        else:
+            epsilon = self.eps_end
+
+        return epsilon
 
     def act(self, observation, exploit=False):
         """Selects an action with an epsilon-greedy exploration strategy."""
@@ -64,7 +73,17 @@ class DQN(nn.Module):
         #       the input would be a [32, 4] tensor and the output a [32, 1] tensor.
         # TODO: Implement epsilon-greedy exploration.
 
-        raise NotImplmentedError
+        # Map forward over the batch of observations.
+        q_values = self.forward(observation)
+
+        if self.get_epsilon() < random.random():
+            # Select a random action.
+            action = torch.randint(0, self.n_actions, (1,)).item()
+        else:
+            # Select the action with the highest Q-value.
+            action = torch.argmax(q_values, dim=1)
+
+        return action
 
 def optimize(dqn, target_dqn, memory, optimizer):
     """This function samples a batch from the replay buffer and optimizes the Q-network."""
