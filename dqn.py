@@ -49,6 +49,8 @@ class DQN(nn.Module):
         self.relu = nn.ReLU()
         self.flatten = nn.Flatten()
 
+        self.episode_step = 0
+
     def forward(self, x):
         """Runs the forward pass of the NN depending on architecture."""
         x = self.relu(self.fc1(x))
@@ -75,16 +77,15 @@ class DQN(nn.Module):
 
         # TODO: Implement epsilon-greedy exploration.
 
-        # Map forward over the batch of observations.
-        q_values = self.forward(observation)
-
-        if self.get_epsilon() < random.random():
+        if self.get_epsilon(self.episode_step) < random.random():
             # Select a random action.
-            action = torch.randint(0, self.n_actions, (1,)).item()
+            action = torch.randint(0, self.n_actions, (1,))
         else:
             # Select the action with the highest Q-value.
+            q_values = self(observation)
             action = torch.argmax(q_values, dim=1)
 
+        self.episode_step += 1
         return action
 
 def optimize(dqn, target_dqn, memory, optimizer):
@@ -99,17 +100,20 @@ def optimize(dqn, target_dqn, memory, optimizer):
     #       Remember to move them to GPU if it is available, e.g., by using Tensor.to(device).
     #       Note that special care is needed for terminal transitions!
     (obs, action, next_obs, reward) = memory.sample(dqn.batch_size)
-    obs = obs.to(device)
-    action = action.to(device)
-    next_obs = next_obs.to(device)
-    reward = reward.to(device)
+    obs = obs[0].to(device)
+    action = action[0].to(device)
+    next_obs = next_obs[0].to(device)
+    reward = reward[0].to(device)
 
+    #GJURT
     # TODO: Compute the current estimates of the Q-values for each state-action
     #       pair (s,a). Here, torch.gather() is useful for selecting the Q-values
     #       corresponding to the chosen actions.
+    q_values = dqn(obs) # test
     
-    
+    #GJURT
     # TODO: Compute the Q-value targets. Only do this for non-terminal transitions!
+    q_value_targets = torch.zeros(q_values.shape, device=device)
     
     # Compute loss.
     loss = F.mse_loss(q_values.squeeze(), q_value_targets)

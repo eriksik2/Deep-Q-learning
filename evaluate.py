@@ -10,7 +10,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', choices=['CartPole-v1'], default='CartPole-v1')
-parser.add_argument('--path', type=str, help='Path to stored DQN model.')
+parser.add_argument('--path', type=str, help='Path to stored DQN model.', default='models/CartPole-v1_best.pt', nargs='?')
 parser.add_argument('--n_eval_episodes', type=int, default=1, help='Number of evaluation episodes.', nargs='?')
 parser.add_argument('--render', dest='render', action='store_true', help='Render the environment.')
 parser.add_argument('--save_video', dest='save_video', action='store_true', help='Save the episodes as video.')
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Initialize environment and config
-    env = gym.make(args.env)
+    env = gym.make(args.env, render_mode='human' if args.render else None)
     env_config = ENV_CONFIGS[args.env]
 
     if args.save_video:

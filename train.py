@@ -74,7 +74,10 @@ if __name__ == '__main__':
             if episode % env_config["train_frequency"] == 0:
                 optimize(dqn, dqn, memory, optimizer)
 
+            #GJURT
             # TODO: Update the target network every env_config["target_update_frequency"] steps.
+            if episode % env_config["target_update_frequency"] == 0:
+                dqn_target = dqn
 
         # Evaluate the current agent.
         if episode % args.evaluate_freq == 0:
