@@ -108,6 +108,7 @@ def optimize(dqn, target_dqn, memory, optimizer):
     #       pair (s,a). Here, torch.gather() is useful for selecting the Q-values
     #       corresponding to the chosen actions.
     
+    
     # TODO: Compute the Q-value targets. Only do this for non-terminal transitions!
     
     # Compute loss.

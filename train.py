@@ -47,20 +47,32 @@ if __name__ == '__main__':
         obs = preprocess(obs, env=args.env).unsqueeze(0)
         
         while not terminated:
+            #GJURT
             # TODO: Get action from DQN.
-            action = None
+            action = dqn.act(obs, exploit=False).item()
 
             # Act in the true environment.
+            old_obs = obs
             obs, reward, terminated, truncated, info = env.step(action)
 
             # Preprocess incoming observation.
             if not terminated:
                 obs = preprocess(obs, env=args.env).unsqueeze(0)
             
+            #GJURT
             # TODO: Add the transition to the replay memory. Remember to convert
             #       everything to PyTorch tensors!
+            old_obs_tensor = torch.tensor(old_obs, dtype=torch.float32)
+            action_tensor = torch.tensor(action, dtype=torch.int64)
+            obs_tensor = torch.tensor(obs, dtype=torch.float32)
+            reward_tensor = torch.tensor(reward, dtype=torch.float32)
+            memory.push(old_obs_tensor, action_tensor, obs_tensor, reward_tensor)
 
+
+            #GJURT?
             # TODO: Run DQN.optimize() every env_config["train_frequency"] steps.
+            if episode % env_config["train_frequency"] == 0:
+                optimize(dqn, dqn, memory, optimizer)
 
             # TODO: Update the target network every env_config["target_update_frequency"] steps.
 
