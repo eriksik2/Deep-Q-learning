@@ -70,8 +70,9 @@ class DQN(nn.Module):
         # TODO: Implement action selection using the Deep Q-network. This function
         #       takes an observation tensor and should return a tensor of actions.
         #       For example, if the state dimension is 4 and the batch size is 32,
-        #       the input would be a [32, 4] tensor and the output a [32, 1] tensor.
-        # TODO: Implement epsilon-greedy exploration.
+        #       the input would be a [32, 4] tensor and the output a [32, 1] tensor. (GJURT)
+
+        # TODO: Implement epsilon-greedy exploration. (GJURT)
 
         # Map forward over the batch of observations.
         q_values = self.forward(observation)
