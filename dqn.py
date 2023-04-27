@@ -93,10 +93,16 @@ def optimize(dqn, target_dqn, memory, optimizer):
     if len(memory) < dqn.batch_size:
         return
 
+    #GJURT
     # TODO: Sample a batch from the replay memory and concatenate so that there are
     #       four tensors in total: observations, actions, next observations and rewards.
     #       Remember to move them to GPU if it is available, e.g., by using Tensor.to(device).
     #       Note that special care is needed for terminal transitions!
+    (obs, action, next_obs, reward) = memory.sample(dqn.batch_size)
+    obs = obs.to(device)
+    action = action.to(device)
+    next_obs = next_obs.to(device)
+    reward = reward.to(device)
 
     # TODO: Compute the current estimates of the Q-values for each state-action
     #       pair (s,a). Here, torch.gather() is useful for selecting the Q-values
