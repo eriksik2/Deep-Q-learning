@@ -113,8 +113,9 @@ def optimize(dqn, target_dqn, memory, optimizer):
     
     #GJURT
     # TODO: Compute the Q-value targets. Only do this for non-terminal transitions!
-    q_value_targets = torch.zeros(q_values.shape, device=device)
-    
+    #bellman = q = q + alpha(r + gamma * max(q') - q)
+    q_value_targets = target_dqn(next_obs)
+        
     # Compute loss.
     loss = F.mse_loss(q_values.squeeze(), q_value_targets)
 
