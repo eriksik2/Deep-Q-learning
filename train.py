@@ -30,6 +30,7 @@ if __name__ == '__main__':
     # Initialize deep Q-networks.
     dqn = DQN(env_config=env_config).to(device)
     # TODO: Create and initialize target Q-network.
+    target_dqn = DQN(env_config=env_config).to(device)
 
     # Create replay memory.
     memory = ReplayMemory(env_config['memory_size'])
@@ -72,12 +73,12 @@ if __name__ == '__main__':
             #GJURT?
             # TODO: Run DQN.optimize() every env_config["train_frequency"] steps.
             if episode % env_config["train_frequency"] == 0:
-                optimize(dqn, dqn, memory, optimizer)
+                optimize(dqn, target_dqn, memory, optimizer)
 
             #GJURT
             # TODO: Update the target network every env_config["target_update_frequency"] steps.
             if episode % env_config["target_update_frequency"] == 0:
-                dqn_target = dqn
+                target_dqn.load_state_dict(dqn.state_dict())
 
         # Evaluate the current agent.
         if episode % args.evaluate_freq == 0:
