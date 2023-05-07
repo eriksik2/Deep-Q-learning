@@ -15,11 +15,11 @@ class ReplayMemory:
     def __len__(self):
         return len(self.memory)
 
-    def push(self, obs, action, next_obs, reward):
+    def push(self, obs, action, next_obs, reward, terminated):
         if len(self.memory) < self.capacity:
             self.memory.append(None)
 
-        self.memory[self.position] = (obs, action, next_obs, reward)
+        self.memory[self.position] = (obs, action, next_obs, reward, terminated)
         self.position = (self.position + 1) % self.capacity
 
     def sample(self, batch_size):
@@ -38,6 +38,7 @@ class DQN(nn.Module):
         # Save hyperparameters needed in the DQN class.
         self.batch_size = env_config["batch_size"]
         self.gamma = env_config["gamma"]
+        self.alpha = env_config["lr"]
         self.eps_start = env_config["eps_start"]
         self.eps_end = env_config["eps_end"]
         self.anneal_length = env_config["anneal_length"]
@@ -76,8 +77,8 @@ class DQN(nn.Module):
         #       the input would be a [32, 4] tensor and the output a [32, 1] tensor.
 
         # TODO: Implement epsilon-greedy exploration.
-
-        if self.get_epsilon(self.episode_step) < random.random():
+        epsilon = self.get_epsilon(self.episode_step)
+        if epsilon > random.random():
             # Select a random action.
             action = torch.randint(0, self.n_actions, (1,))
         else:
@@ -99,22 +100,25 @@ def optimize(dqn, target_dqn, memory, optimizer):
     #       four tensors in total: observations, actions, next observations and rewards.
     #       Remember to move them to GPU if it is available, e.g., by using Tensor.to(device).
     #       Note that special care is needed for terminal transitions!
-    (obs, action, next_obs, reward) = memory.sample(dqn.batch_size)
-    obs = obs[0].to(device)
-    action = action[0].to(device)
-    next_obs = next_obs[0].to(device)
-    reward = reward[0].to(device)
+    (obs, action, next_obs, reward, terminal) = memory.sample(dqn.batch_size)
+    obs = torch.stack(obs).squeeze()
+    action = torch.stack(action).squeeze()
+    next_obs = torch.stack([next_obs.squeeze() for next_obs in next_obs]).squeeze()
+    reward = torch.stack(reward).squeeze()
+    nonterminal = torch.tensor([0 if terminal else 1 for terminal in terminal]).to(device)
 
     #GJURT
     # TODO: Compute the current estimates of the Q-values for each state-action
     #       pair (s,a). Here, torch.gather() is useful for selecting the Q-values
     #       corresponding to the chosen actions.
     q_values = dqn(obs) # test
+    q_values = torch.gather(q_values, 1, action.unsqueeze(1))
     
     #GJURT
     # TODO: Compute the Q-value targets. Only do this for non-terminal transitions!
-    #bellman = q = q + alpha(r + gamma * max(q') - q)
-    q_value_targets = target_dqn(next_obs)
+    q_value_targets = reward
+    q_value_targets = q_value_targets + nonterminal*torch.max(target_dqn(next_obs), dim=1).values
+    #print(q_value_targets)
         
     # Compute loss.
     loss = F.mse_loss(q_values.squeeze(), q_value_targets)

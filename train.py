@@ -59,15 +59,15 @@ if __name__ == '__main__':
             # Preprocess incoming observation.
             if not terminated:
                 obs = preprocess(obs, env=args.env).unsqueeze(0)
-            
+
             #GJURT
             # TODO: Add the transition to the replay memory. Remember to convert
             #       everything to PyTorch tensors!
             old_obs_tensor = torch.tensor(old_obs, dtype=torch.float32)
-            action_tensor = torch.tensor(action, dtype=torch.int64)
+            action_tensor = torch.tensor([action], dtype=torch.int64)
             obs_tensor = torch.tensor(obs, dtype=torch.float32)
             reward_tensor = torch.tensor(reward, dtype=torch.float32)
-            memory.push(old_obs_tensor, action_tensor, obs_tensor, reward_tensor)
+            memory.push(old_obs_tensor, action_tensor, obs_tensor, reward_tensor, terminated)
 
 
             #GJURT?
