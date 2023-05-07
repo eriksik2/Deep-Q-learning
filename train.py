@@ -8,6 +8,8 @@ from utils import preprocess
 from evaluate import evaluate_policy
 from dqn import DQN, ReplayMemory, optimize
 
+import record
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser()
@@ -23,9 +25,12 @@ ENV_CONFIGS = {
 if __name__ == '__main__':
     args = parser.parse_args()
 
+
     # Initialize environment and config.
     env = gym.make(args.env)
     env_config = ENV_CONFIGS[args.env]
+
+    recorder = record.Recorder(args.env, env_config)
 
     # Initialize deep Q-networks.
     dqn = DQN(env_config=env_config).to(device)
@@ -84,6 +89,7 @@ if __name__ == '__main__':
         if episode % args.evaluate_freq == 0:
             mean_return = evaluate_policy(dqn, env, env_config, args, n_episodes=args.evaluation_episodes)
             print(f'Episode {episode+1}/{env_config["n_episodes"]}: {mean_return}')
+            recorder.record_episode(episode, mean_return)
 
             # Save current agent if it has the best performance so far.
             if mean_return >= best_mean_return:
@@ -94,3 +100,4 @@ if __name__ == '__main__':
         
     # Close environment after training is completed.
     env.close()
+    recorder.save()
