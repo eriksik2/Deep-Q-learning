@@ -14,14 +14,14 @@ import record
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', choices=['CartPole-v1'], default='ALE/Pong-v5')
+parser.add_argument('--env', choices=['CartPole-v1'], default='Pong-v5')
 parser.add_argument('--evaluate_freq', type=int, default=25, help='How often to run evaluation.', nargs='?')
 parser.add_argument('--evaluation_episodes', type=int, default=5, help='Number of evaluation episodes.', nargs='?')
 
 # Hyperparameter configurations for different environments. See config.py.
 ENV_CONFIGS = {
     'CartPole-v1': config.CartPole,
-    'ALE/Pong-v5': config.Pong
+    'Pong-v5': config.Pong
 }
 
 if __name__ == '__main__':
@@ -29,8 +29,8 @@ if __name__ == '__main__':
 
 
     # Initialize environment and config.
-    env = gym.make(args.env)
-    if args.env == 'ALE/Pong-v5':
+    env = gym.make(args.env if args.env != 'Pong-v5' else 'ALE/Pong-v5')
+    if args.env == 'Pong-v5':
         env = AtariPreprocessing(env, screen_size=84, grayscale_obs=True, frame_skip=1, noop_max=30)
     env_config = ENV_CONFIGS[args.env]
 
@@ -60,16 +60,16 @@ if __name__ == '__main__':
         while not terminated:
             #GJURT
             # TODO: Get action from DQN.
-            action = dqn.act(obs, exploit=False).item()
+            action = dqn.act(obs_stack, exploit=False).item()
 
             # Act in the true environment.
             old_obs_stack = obs_stack
             obs, reward, terminated, truncated, info = env.step(action)
-            obs_stack = torch.cat((obs_stack[:, 1:, ...], preprocess(obs, env=args.env).unsqueeze(0).unsqueeze(1)), dim=1).to(device)
 
             # Preprocess incoming observation.
-            if not terminated:
-                obs = preprocess(obs, env=args.env).unsqueeze(0)
+            #if not terminated:
+            obs = preprocess(obs, env=args.env).unsqueeze(0)
+            obs_stack = torch.cat((obs_stack[:, 1:, ...], torch.tensor(obs, dtype=torch.float32).unsqueeze(1)), dim=1).to(device)
 
             #GJURT
             # TODO: Add the transition to the replay memory. Remember to convert
