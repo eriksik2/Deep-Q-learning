@@ -111,10 +111,10 @@ def optimize(dqn, target_dqn, memory, optimizer):
     #       Remember to move them to GPU if it is available, e.g., by using Tensor.to(device).
     #       Note that special care is needed for terminal transitions!
     (obs, action, next_obs, reward, terminal) = memory.sample(dqn.batch_size)
-    obs = torch.stack(obs).squeeze()
-    action = torch.stack(action).squeeze()
-    next_obs = torch.stack([next_obs.squeeze() for next_obs in next_obs]).squeeze()
-    reward = torch.stack(reward).squeeze()
+    obs = torch.stack(obs).squeeze().to(device)
+    action = torch.stack(action).squeeze().to(device)
+    next_obs = torch.stack([next_obs.squeeze() for next_obs in next_obs]).squeeze().to(device)
+    reward = torch.stack(reward).squeeze().to(device)
     nonterminal = torch.tensor([0 if terminal else 1 for terminal in terminal]).to(device)
 
     #GJURT
