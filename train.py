@@ -7,19 +7,21 @@ import config
 from utils import preprocess
 from evaluate import evaluate_policy
 from dqn import DQN, ReplayMemory, optimize
+from gymnasium.wrappers import AtariPreprocessing
 
 import record
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', choices=['CartPole-v1'], default='CartPole-v1')
+parser.add_argument('--env', choices=['CartPole-v1'], default='ALE/Pong-v5')
 parser.add_argument('--evaluate_freq', type=int, default=25, help='How often to run evaluation.', nargs='?')
 parser.add_argument('--evaluation_episodes', type=int, default=5, help='Number of evaluation episodes.', nargs='?')
 
 # Hyperparameter configurations for different environments. See config.py.
 ENV_CONFIGS = {
-    'CartPole-v1': config.CartPole
+    'CartPole-v1': config.CartPole,
+    'ALE/Pong-v5': config.Pong
 }
 
 if __name__ == '__main__':
@@ -28,6 +30,8 @@ if __name__ == '__main__':
 
     # Initialize environment and config.
     env = gym.make(args.env)
+    if args.env == 'ALE/Pong-v5':
+        env = AtariPreprocessing(env, screen_size=84, grayscale_obs=True, frame_skip=1, noop_max=30)
     env_config = ENV_CONFIGS[args.env]
 
     recorder = record.Recorder(args.env, env_config)
@@ -51,15 +55,17 @@ if __name__ == '__main__':
         obs, info = env.reset()
 
         obs = preprocess(obs, env=args.env).unsqueeze(0)
-        
+        obs_stack = torch.cat(env_config['obs_stack_size'] * [obs]).unsqueeze(0).to(device)
+
         while not terminated:
             #GJURT
             # TODO: Get action from DQN.
             action = dqn.act(obs, exploit=False).item()
 
             # Act in the true environment.
-            old_obs = obs
+            old_obs_stack = obs_stack
             obs, reward, terminated, truncated, info = env.step(action)
+            obs_stack = torch.cat((obs_stack[:, 1:, ...], preprocess(obs, env=args.env).unsqueeze(0).unsqueeze(1)), dim=1).to(device)
 
             # Preprocess incoming observation.
             if not terminated:
@@ -68,9 +74,9 @@ if __name__ == '__main__':
             #GJURT
             # TODO: Add the transition to the replay memory. Remember to convert
             #       everything to PyTorch tensors!
-            old_obs_tensor = torch.tensor(old_obs, dtype=torch.float32)
+            old_obs_tensor = torch.tensor(old_obs_stack, dtype=torch.float32)
             action_tensor = torch.tensor([action], dtype=torch.int64)
-            obs_tensor = torch.tensor(obs, dtype=torch.float32)
+            obs_tensor = torch.tensor(obs_stack, dtype=torch.float32)
             reward_tensor = torch.tensor(reward, dtype=torch.float32)
             memory.push(old_obs_tensor, action_tensor, obs_tensor, reward_tensor, terminated)
 

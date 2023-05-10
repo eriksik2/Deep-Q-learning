@@ -9,7 +9,7 @@ from utils import preprocess
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', choices=['CartPole-v1'], default='CartPole-v1')
+parser.add_argument('--env', choices=['CartPole-v1'], default='ALE/Pong-v5')
 parser.add_argument('--path', type=str, help='Path to stored DQN model.', default='models/CartPole-v1_best.pt', nargs='?')
 parser.add_argument('--n_eval_episodes', type=int, default=10, help='Number of evaluation episodes.', nargs='?')
 parser.add_argument('--render', dest='render', action='store_true', help='Render the environment.')
@@ -20,6 +20,7 @@ parser.set_defaults(save_video=False)
 # Hyperparameter configurations for different environments. See config.py.
 ENV_CONFIGS = {
     'CartPole-v1': config.CartPole,
+    'ALE/Pong-v5': config.Pong
 }
 
 
