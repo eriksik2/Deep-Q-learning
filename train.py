@@ -12,6 +12,7 @@ from gymnasium.wrappers import AtariPreprocessing
 import record
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print('Using device:', device)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', choices=['CartPole-v1'], default='Pong-v5')
