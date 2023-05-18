@@ -68,17 +68,21 @@ if __name__ == '__main__':
             obs, reward, terminated, truncated, info = env.step(action)
 
             # Preprocess incoming observation.
-            #if not terminated:
-            obs = preprocess(obs, env=args.env).unsqueeze(0)
-            obs_stack = torch.cat((obs_stack[:, 1:, ...], torch.tensor(obs, dtype=torch.float32).unsqueeze(1)), dim=1).to(device)
+            if not terminated:
+                obs = preprocess(obs, env=args.env).unsqueeze(0)
+                obs_stack = torch.cat((obs_stack[:, 1:, ...], torch.tensor(obs, dtype=torch.float32).unsqueeze(1)), dim=1).to(device)
+            else:
+                obs_stack = None
+                obs = None
 
             #GJURT
             # TODO: Add the transition to the replay memory. Remember to convert
             #       everything to PyTorch tensors!
-            old_obs_tensor = torch.tensor(old_obs_stack, dtype=torch.float32)
-            action_tensor = torch.tensor([action], dtype=torch.int64)
-            obs_tensor = torch.tensor(obs_stack, dtype=torch.float32)
-            reward_tensor = torch.tensor(reward, dtype=torch.float32)
+            old_obs_tensor = old_obs_stack
+            action_tensor = torch.asarray(action, dtype=torch.int64)
+            obs_tensor = obs_stack
+            reward_tensor = torch.asarray(reward, dtype=torch.float32)
+            #print("reward_tensor: ", reward_tensor)
             memory.push(old_obs_tensor, action_tensor, obs_tensor, reward_tensor, terminated)
 
 
