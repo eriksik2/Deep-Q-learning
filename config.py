@@ -36,7 +36,7 @@ Pong = {
     'memory_size': 10000,
     'n_episodes': 1000,
     'batch_size': 32,
-    'target_update_frequency': 10,
+    'target_update_frequency': 100,
     'train_frequency': 4,
     'gamma': 0.99,
     'lr': 1.0e-4,
