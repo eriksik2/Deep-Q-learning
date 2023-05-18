@@ -132,7 +132,7 @@ def optimize(dqn, target_dqn, memory, optimizer):
         
     # Compute loss.
     loss = F.mse_loss(q_values.squeeze(), q_value_targets)
-    print(loss)
+    #print(loss)
 
     # Perform gradient descent.
     optimizer.zero_grad()
