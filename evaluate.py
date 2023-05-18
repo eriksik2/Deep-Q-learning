@@ -70,7 +70,7 @@ if __name__ == '__main__':
         env = AtariPreprocessing(env, screen_size=84, grayscale_obs=True, frame_skip=1, noop_max=30)
 
     # Load model from provided path.
-    dqn = torch.load(args.path, map_location=torch.device('cpu'))
+    dqn = torch.load(args.path, map_location=torch.device('cuda'))
     dqn.eval()
 
     mean_return = evaluate_policy(dqn, env, env_config, args, args.n_eval_episodes, render=args.render and not args.save_video, verbose=True)
