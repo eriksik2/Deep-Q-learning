@@ -2,6 +2,7 @@ import argparse
 
 import gymnasium as gym
 import torch
+from gymnasium.wrappers import AtariPreprocessing
 
 import config
 from utils import preprocess
@@ -10,7 +11,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', choices=['CartPole-v1'], default='Pong-v5')
-parser.add_argument('--path', type=str, help='Path to stored DQN model.', default='models/CartPole-v1_best.pt', nargs='?')
+parser.add_argument('--path', type=str, help='Path to stored DQN model.', default='models/Pong-v5_best.pt', nargs='?')
 parser.add_argument('--n_eval_episodes', type=int, default=10, help='Number of evaluation episodes.', nargs='?')
 parser.add_argument('--render', dest='render', action='store_true', help='Render the environment.')
 parser.add_argument('--save_video', dest='save_video', action='store_true', help='Save the episodes as video.')
@@ -42,7 +43,7 @@ def evaluate_policy(dqn, env, env_config, args, n_episodes, render=False, verbos
             action = dqn.act(obs_stack, exploit=True).item()
             obs, reward, terminated, truncated, info = env.step(action)
             obs = preprocess(obs, env=args.env).unsqueeze(0)
-            obs_stack = torch.cat((obs_stack[:, 1:, ...], obs.unsqueeze(1)), dim=1).to(device)
+            obs_stack = torch.cat((obs_stack[:, 1:, ...], torch.tensor(obs, dtype=torch.float32).unsqueeze(1)), dim=1).to(device)
 
             episode_return += reward
         
@@ -58,12 +59,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Initialize environment and config
-    env = gym.make(args.env, render_mode='human' if args.render else None)
+    env = gym.make(args.env if args.env != 'Pong-v5' else 'ALE/Pong-v5', render_mode='human' if args.render else None)
     env_config = ENV_CONFIGS[args.env]
 
     if args.save_video:
-        env = gym.make(args.env, render_mode='rgb_array')
+        env = gym.make(args.env if args.env != 'Pong-v5' else 'ALE/Pong-v5', render_mode='rgb_array')
         env = gym.wrappers.RecordVideo(env, './video/', episode_trigger=lambda episode_id: True)
+
+    if args.env == 'Pong-v5':
+        env = AtariPreprocessing(env, screen_size=84, grayscale_obs=True, frame_skip=1, noop_max=30)
 
     # Load model from provided path.
     dqn = torch.load(args.path, map_location=torch.device('cpu'))
