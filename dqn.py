@@ -97,7 +97,7 @@ class DQN(nn.Module):
             action = torch.argmax(q_values, dim=1)
 
         self.episode_step += 1
-        return action
+        return action + 2
 
 def optimize(dqn, target_dqn, memory, optimizer):
     """This function samples a batch from the replay buffer and optimizes the Q-network."""
@@ -122,7 +122,7 @@ def optimize(dqn, target_dqn, memory, optimizer):
     #       pair (s,a). Here, torch.gather() is useful for selecting the Q-values
     #       corresponding to the chosen actions.
     q_values = dqn(obs) # test
-    q_values = torch.gather(q_values, 1, action.unsqueeze(1))
+    q_values = torch.gather(q_values, 1, (action - 2).unsqueeze(1))
     
     #GJURT
     # TODO: Compute the Q-value targets. Only do this for non-terminal transitions!
