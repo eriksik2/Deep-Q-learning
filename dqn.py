@@ -127,7 +127,7 @@ def optimize(dqn, target_dqn, memory, optimizer):
     #GJURT
     # TODO: Compute the Q-value targets. Only do this for non-terminal transitions!
     q_value_targets = reward
-    q_value_targets = q_value_targets + nonterminal*torch.max(target_dqn(next_obs), dim=1).values
+    q_value_targets = q_value_targets + nonterminal*target_dqn.gamma*torch.max(target_dqn(next_obs), dim=1).values
     #print(q_value_targets)
         
     # Compute loss.
